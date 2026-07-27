@@ -15,7 +15,7 @@ export const api = {
   getTodos: () => request<Todo[]>('/todos'),
   createTodo: (title: string) =>
     request<Todo>('/todos', { method: 'POST', body: JSON.stringify({ title }) }),
-  updateTodo: (id: string, updates: { title?: string; completed?: boolean }) =>
+  updateTodo: (id: string, updates: { title?: string; completed?: boolean; doDate?: string | null }) =>
     request<Todo>(`/todos/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
   deleteTodo: (id: string) =>
     request<void>(`/todos/${id}`, { method: 'DELETE' }),

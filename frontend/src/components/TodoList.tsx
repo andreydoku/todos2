@@ -49,6 +49,11 @@ export function TodoList() {
     setTodos(prev => prev.map(t => t.id === id ? updated : t))
   }
 
+  async function handleSetDoDate(id: string, doDate: string | null) {
+    const updated = await api.updateTodo(id, { doDate })
+    setTodos(prev => prev.map(t => t.id === id ? updated : t))
+  }
+
   async function handleDelete(id: string) {
     await api.deleteTodo(id)
     const newIds = orderedIds.filter(oid => oid !== id)
@@ -91,6 +96,7 @@ export function TodoList() {
                   todo={todo}
                   onToggle={handleToggle}
                   onRename={handleRename}
+                  onSetDoDate={handleSetDoDate}
                   onDelete={handleDelete}
                 />
               ))}

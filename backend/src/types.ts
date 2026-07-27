@@ -3,6 +3,7 @@ export interface Todo {
   title: string
   completed: boolean
   createdAt: string
+  doDate?: string | null
 }
 
 export interface DynamoTodo extends Todo {
