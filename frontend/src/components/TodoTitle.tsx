@@ -52,7 +52,7 @@ export function TodoTitle({ title, completed, onSave }: Props) {
   return (
     <span
       onClick={startEditing}
-      className={`flex-1 text-sm cursor-pointer rounded-sm px-1 -mx-1 py-0.5 hover:bg-accent transition-colors ${
+      className={`flex flex-1 items-center text-sm cursor-pointer rounded-sm px-1 -mx-1 py-0.5 hover:bg-slate-200 transition-colors ${
         completed ? 'line-through text-muted-foreground' : ''
       }`}
     >

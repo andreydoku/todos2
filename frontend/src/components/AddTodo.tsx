@@ -30,7 +30,7 @@ export function AddTodo({ onAdd }: Props) {
         onChange={e => setTitle(e.target.value)}
         placeholder="Add a new todo..."
         disabled={loading}
-        className="flex-1"
+        className="flex-1 bg-white"
       />
       <Button type="submit" disabled={loading || !title.trim()}>
         Add

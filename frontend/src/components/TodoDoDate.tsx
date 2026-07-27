@@ -69,12 +69,12 @@ export function TodoDoDate({ doDate, onSave }: Props) {
   if (doDate) {
     const { monthDay, year } = formatDoDate(doDate)
     return (
-      <span className="relative inline-block">
+      <span className="relative inline-block self-center">
         <button
           onMouseDown={preventFocusSteal}
           onClick={toggleEditing}
           aria-label="Change date"
-          className="flex w-14 h-8 flex-col items-center justify-center rounded-sm text-xs leading-none text-muted-foreground cursor-pointer hover:bg-accent transition-colors"
+          className="flex w-14 h-8 flex-col items-center justify-center rounded-sm text-xs leading-none cursor-pointer hover:text-black hover:bg-slate-200 transition-colors"
         >
           <span>{monthDay}</span>
           {year && <span>{year}</span>}
@@ -85,13 +85,13 @@ export function TodoDoDate({ doDate, onSave }: Props) {
   }
 
   return (
-    <span className="relative inline-block">
+    <span className="relative inline-block self-center">
       <Button
         variant="ghost"
         size="icon-sm"
         onMouseDown={preventFocusSteal}
         onClick={toggleEditing}
-        className="w-14 h-8 cursor-pointer text-muted-foreground hover:text-foreground"
+        className="w-14 h-8 rounded-sm cursor-pointer text-muted-foreground hover:bg-slate-200 hover:text-foreground"
         aria-label="Set date"
       >
         <Calendar />

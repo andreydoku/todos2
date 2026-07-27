@@ -77,19 +77,19 @@ export function TodoList() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-10">
+    <Card className="w-full max-w-md mx-auto mt-10 rounded-none border-none bg-transparent shadow-none">
       <CardHeader>
-        <CardTitle>My Todos</CardTitle>
+        <CardTitle className="text-neutral-100">My Todos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <AddTodo onAdd={handleAdd} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         {todos.length === 0 && !error && (
-          <p className="text-sm text-muted-foreground text-center py-4">No todos yet. Add one above!</p>
+          <p className="text-sm text-neutral-400 text-center py-4">No todos yet. Add one above!</p>
         )}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={todos.map(t => t.id)} strategy={verticalListSortingStrategy}>
-            <div className="divide-y">
+            <div className="space-y-2">
               {todos.map(todo => (
                 <TodoItem
                   key={todo.id}
