@@ -48,11 +48,15 @@ export class Todos2Stack extends cdk.Stack {
     const createTodoFn = makeHandler('CreateTodo', 'create-todo', 'createTodo.ts')
     const updateTodoFn = makeHandler('UpdateTodo', 'update-todo', 'updateTodo.ts')
     const deleteTodoFn = makeHandler('DeleteTodo', 'delete-todo', 'deleteTodo.ts')
+    const getOrderFn = makeHandler('GetOrder', 'get-order', 'getOrder.ts')
+    const updateOrderFn = makeHandler('UpdateOrder', 'update-order', 'updateOrder.ts')
 
     table.grantReadData(getTodosFn)
     table.grantWriteData(createTodoFn)
     table.grantReadWriteData(updateTodoFn)
     table.grantWriteData(deleteTodoFn)
+    table.grantReadData(getOrderFn)
+    table.grantWriteData(updateOrderFn)
 
     // HTTP API Gateway
     const httpApi = new apigatewayv2.HttpApi(this, 'TodosApi', {
@@ -71,6 +75,8 @@ export class Todos2Stack extends cdk.Stack {
     httpApi.addRoutes({ path: '/todos', methods: [apigatewayv2.HttpMethod.POST], integration: int(createTodoFn) })
     httpApi.addRoutes({ path: '/todos/{id}', methods: [apigatewayv2.HttpMethod.PUT], integration: int(updateTodoFn) })
     httpApi.addRoutes({ path: '/todos/{id}', methods: [apigatewayv2.HttpMethod.DELETE], integration: int(deleteTodoFn) })
+    httpApi.addRoutes({ path: '/order', methods: [apigatewayv2.HttpMethod.GET], integration: int(getOrderFn) })
+    httpApi.addRoutes({ path: '/order', methods: [apigatewayv2.HttpMethod.PUT], integration: int(updateOrderFn) })
 
     // S3 bucket for frontend
     const siteBucket = new s3.Bucket(this, 'SiteBucket', {

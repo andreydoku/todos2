@@ -19,4 +19,7 @@ export const api = {
     request<Todo>(`/todos/${id}`, { method: 'PUT', body: JSON.stringify({ completed }) }),
   deleteTodo: (id: string) =>
     request<void>(`/todos/${id}`, { method: 'DELETE' }),
+  getOrder: () => request<{ ids: string[] }>('/order'),
+  updateOrder: (ids: string[]) =>
+    request<{ ids: string[] }>('/order', { method: 'PUT', body: JSON.stringify({ ids }) }),
 }

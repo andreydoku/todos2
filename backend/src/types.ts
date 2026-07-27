@@ -12,3 +12,4 @@ export interface DynamoTodo extends Todo {
 
 export const USER_PK = 'USER#default'
 export const todoSK = (id: string) => `TODO#${id}`
+export const ORDER_SK = 'ORDER'

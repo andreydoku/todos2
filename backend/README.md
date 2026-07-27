@@ -124,3 +124,51 @@ curl -X DELETE https://y4dpl1wdu1.execute-api.us-east-2.amazonaws.com/todos/e2a1
 ```json
 { "error": "todo not found" }
 ```
+
+---
+
+### GET /order
+Return the current display order as an array of todo IDs. Returns an empty array if no order has been saved yet.
+
+```bash
+curl https://y4dpl1wdu1.execute-api.us-east-2.amazonaws.com/order
+```
+
+**Response 200:**
+```json
+{ "ids": ["e2a1f3b4-...", "a1b2c3d4-...", "f9e8d7c6-..."] }
+```
+
+---
+
+### PUT /order
+Overwrite the display order with a new array of todo IDs. Called automatically by the frontend after drag-and-drop, create, or delete.
+
+```bash
+curl -X PUT https://y4dpl1wdu1.execute-api.us-east-2.amazonaws.com/order \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["a1b2c3d4-...", "f9e8d7c6-...", "e2a1f3b4-..."]}'
+```
+
+**Response 200:**
+```json
+{ "ids": ["a1b2c3d4-...", "f9e8d7c6-...", "e2a1f3b4-..."] }
+```
+
+**Response 400** (invalid body):
+```json
+{ "error": "ids must be an array of strings" }
+```
+
+---
+
+## DynamoDB record types
+
+Both todos and the order document live in the same table under `PK: "USER#default"`:
+
+| Record | SK | Description |
+|--------|----|-------------|
+| Todo | `TODO#{uuid}` | Individual todo item |
+| Order | `ORDER` | Ordered array of todo IDs for display |
+
+`GET /todos` uses `begins_with(SK, "TODO#")` so the ORDER record is never included in todo responses.
