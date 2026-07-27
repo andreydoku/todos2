@@ -77,3 +77,9 @@ One CDK stack (`Todos2Stack`) wires: DynamoDB table (single-table, pay-per-reque
 Inline editing fields (`TodoTitle`, `TodoDoDate`) each manage their own local edit-mode state and call back up to `TodoList`'s handlers on save — they don't touch the API directly. `TodoDoDate` triggers the native `<input type="date">` picker programmatically via `showPicker()`/`blur()` rather than rendering a visible input, since only a compact label or a calendar icon is ever shown.
 
 UI components come from shadcn (`style: new-york`, `baseColor: zinc`, config in `frontend/components.json`) under `frontend/src/components/ui/`, aliased as `@/*` → `frontend/src/*` (see `vite.config.ts` and `components.json`).
+
+### UI style guide
+The app's theme is slate, layered on top of the shadcn/zinc tokens rather than replacing them:
+- Page background: `bg-slate-800`.
+- Hover effect for interactive controls (title, do-date, drag handle, delete button, checkbox hit-area): `hover:bg-slate-200` — same hue as the page background, but light enough to read against the near-white `Card` rows.
+- Checkbox checked state is a green accent (`green-700`), overriding the shadcn default `primary` color for that one state.
