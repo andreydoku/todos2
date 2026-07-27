@@ -26,7 +26,7 @@ export function TodoItem({ todo, onToggle, onRename, onSetDoDate, onDelete }: Pr
   }
 
   return (
-    <Card ref={setNodeRef} style={style} className="flex-row items-stretch gap-1 px-2 py-2 rounded-sm">
+    <Card ref={setNodeRef} style={style} className="flex-row items-stretch gap-1 px-2 py-2 rounded-sm shadow-md">
       <button
         className="flex cursor-grab items-center justify-center rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-slate-200 hover:text-foreground touch-none"
         {...attributes}

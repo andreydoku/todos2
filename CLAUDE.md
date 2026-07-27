@@ -80,6 +80,6 @@ UI components come from shadcn (`style: new-york`, `baseColor: zinc`, config in 
 
 ### UI style guide
 The app's theme is slate, layered on top of the shadcn/zinc tokens rather than replacing them:
-- Page background: `bg-slate-800`.
+- Page background: `bg-slate-700`.
 - Hover effect for interactive controls (title, do-date, drag handle, delete button, checkbox hit-area): `hover:bg-slate-200` — same hue as the page background, but light enough to read against the near-white `Card` rows.
 - Checkbox checked state is a green accent (`green-700`), overriding the shadcn default `primary` color for that one state.
