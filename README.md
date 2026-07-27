@@ -45,7 +45,7 @@ All resources are tagged `Project=Todos2` and `Environment=dev|prod`.
 ## Local development
 
 1. Install dependencies:
-   ```powershell
+   ```bash
    npm install
    ```
 
@@ -55,14 +55,13 @@ All resources are tagged `Project=Todos2` and `Environment=dev|prod`.
    ```
    This file is gitignored. The URL comes from the `Todos2Stack-dev.ApiUrl` CDK output.
    Retrieve it anytime with:
-   ```powershell
+   ```bash
    aws cloudformation describe-stacks --stack-name Todos2Stack-dev --profile todos2-deployer --query "Stacks[0].Outputs"
    ```
 
 3. Start the dev server:
-   ```powershell
-   cd frontend
-   npm run dev
+   ```bash
+   cd frontend && npm run dev
    ```
    API requests are proxied to the deployed dev environment — no local backend needed.
 
@@ -71,52 +70,43 @@ All resources are tagged `Project=Todos2` and `Environment=dev|prod`.
 ### First-time deploy (three passes)
 
 Pass 1 — build a placeholder frontend so CDK has a `dist/` folder to upload:
-```powershell
-cd frontend
-npm run build
+```bash
+cd frontend && npm run build
 ```
 
 Pass 2 — deploy the stack and capture the API URL from the outputs:
-```powershell
-cd infra
-npx cdk deploy Todos2Stack-dev --profile todos2-deployer
+```bash
+cd infra && npx cdk deploy Todos2Stack-dev --profile todos2-deployer
 ```
 
 Pass 3 — rebuild frontend with the real API URL, then redeploy to sync S3:
-```powershell
+```bash
 cd frontend
-$env:VITE_API_URL = "https://<ApiUrl from output>"
-npm run build
+VITE_API_URL=https://<ApiUrl from output> npm run build
 
-cd infra
-npx cdk deploy Todos2Stack-dev --profile todos2-deployer
+cd infra && npx cdk deploy Todos2Stack-dev --profile todos2-deployer
 ```
 
 ### Subsequent deploys
 
-```powershell
+```bash
 cd frontend
-$env:VITE_API_URL = "https://y4dpl1wdu1.execute-api.us-east-2.amazonaws.com"
-npm run build
+VITE_API_URL=https://y4dpl1wdu1.execute-api.us-east-2.amazonaws.com npm run build
 
-cd infra
-npx cdk deploy Todos2Stack-dev --profile todos2-deployer
+cd infra && npx cdk deploy Todos2Stack-dev --profile todos2-deployer
 ```
 
 ### Deploy to prod
 
-```powershell
+```bash
 cd frontend
-$env:VITE_API_URL = "https://<prod ApiUrl>"
-npm run build
+VITE_API_URL=https://<prod ApiUrl> npm run build
 
-cd infra
-npx cdk deploy Todos2Stack-prod --profile todos2-deployer
+cd infra && npx cdk deploy Todos2Stack-prod --profile todos2-deployer
 ```
 
 ## Tearing down
 
-```powershell
-cd infra
-npx cdk destroy Todos2Stack-dev --profile todos2-deployer
+```bash
+cd infra && npx cdk destroy Todos2Stack-dev --profile todos2-deployer
 ```
