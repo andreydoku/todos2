@@ -40,7 +40,12 @@ export function TodoList() {
   }
 
   async function handleToggle(id: string, completed: boolean) {
-    const updated = await api.updateTodo(id, completed)
+    const updated = await api.updateTodo(id, { completed })
+    setTodos(prev => prev.map(t => t.id === id ? updated : t))
+  }
+
+  async function handleRename(id: string, title: string) {
+    const updated = await api.updateTodo(id, { title })
     setTodos(prev => prev.map(t => t.id === id ? updated : t))
   }
 
@@ -85,6 +90,7 @@ export function TodoList() {
                   key={todo.id}
                   todo={todo}
                   onToggle={handleToggle}
+                  onRename={handleRename}
                   onDelete={handleDelete}
                 />
               ))}

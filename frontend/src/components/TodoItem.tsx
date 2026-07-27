@@ -3,15 +3,17 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { TodoTitle } from './TodoTitle'
 import type { Todo } from '@/types'
 
 interface Props {
   todo: Todo
   onToggle: (id: string, completed: boolean) => Promise<void>
+  onRename: (id: string, title: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }
 
-export function TodoItem({ todo, onToggle, onDelete }: Props) {
+export function TodoItem({ todo, onToggle, onRename, onDelete }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: todo.id })
 
   const style = {
@@ -33,14 +35,12 @@ export function TodoItem({ todo, onToggle, onDelete }: Props) {
       <Checkbox
         checked={todo.completed}
         onCheckedChange={checked => onToggle(todo.id, checked === true)}
-        id={`todo-${todo.id}`}
       />
-      <label
-        htmlFor={`todo-${todo.id}`}
-        className={`flex-1 cursor-pointer text-sm ${todo.completed ? 'line-through text-muted-foreground' : ''}`}
-      >
-        {todo.title}
-      </label>
+      <TodoTitle
+        title={todo.title}
+        completed={todo.completed}
+        onSave={title => onRename(todo.id, title)}
+      />
       <Button
         variant="ghost"
         size="icon-sm"
