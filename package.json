@@ -1,0 +1,14 @@
+{
+  "name": "todos2",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "infra"
+  ],
+  "scripts": {
+    "build:frontend": "npm run build --workspace=frontend",
+    "deploy": "npm run deploy --workspace=infra"
+  }
+}
