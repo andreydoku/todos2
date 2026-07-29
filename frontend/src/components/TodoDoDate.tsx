@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface Props {
   doDate: string | null | undefined
+  compact?: boolean
   onSave: (doDate: string | null) => Promise<void>
 }
 
@@ -19,7 +21,7 @@ function formatDoDate(doDate: string) {
   return { monthDay, year: year !== currentYear ? String(year) : null }
 }
 
-export function TodoDoDate({ doDate, onSave }: Props) {
+export function TodoDoDate({ doDate, compact, onSave }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [editing, setEditing] = useState(false)
 
@@ -65,6 +67,27 @@ export function TodoDoDate({ doDate, onSave }: Props) {
       className="absolute left-0 top-full h-px w-px opacity-0"
     />
   )
+
+  if (compact) {
+    return (
+      <span className="relative inline-block self-center">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onMouseDown={preventFocusSteal}
+          onClick={toggleEditing}
+          className={cn(
+            'rounded-sm cursor-pointer hover:bg-slate-200',
+            doDate ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+          aria-label={doDate ? 'Change date' : 'Set date'}
+        >
+          <Calendar />
+        </Button>
+        {hiddenInput}
+      </span>
+    )
+  }
 
   if (doDate) {
     const { monthDay, year } = formatDoDate(doDate)

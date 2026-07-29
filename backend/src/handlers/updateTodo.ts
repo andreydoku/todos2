@@ -3,6 +3,7 @@ import { UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb'
 import { ddb, TABLE_NAME } from '../db'
 import { USER_PK, todoSK } from '../types'
+import { isValidDoDate } from '../validation'
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const id = event.pathParameters?.id
@@ -33,7 +34,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (body.doDate !== undefined) {
     if (body.doDate === null) {
       removeUpdates.push('doDate')
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(body.doDate) || isNaN(Date.parse(body.doDate))) {
+    } else if (!isValidDoDate(body.doDate)) {
       return { statusCode: 400, body: JSON.stringify({ error: 'doDate must be in YYYY-MM-DD format' }) }
     } else {
       setUpdates.push('doDate = :doDate')

@@ -1,108 +1,68 @@
-import { useEffect, useState } from 'react'
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
-import type { DragEndEvent } from '@dnd-kit/core'
-import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddTodo } from './AddTodo'
-import { TodoItem } from './TodoItem'
-import { api } from '@/api'
+import { TodoCard } from './TodoCard'
+import { useTodos } from '@/context/TodosContext'
+import { containerDroppableId } from '@/lib/dnd'
+import { cn } from '@/lib/utils'
+import type { ContainerDragData } from '@/lib/dnd'
 import type { Todo } from '@/types'
 
-function applyOrder(todos: Todo[], ids: string[]): Todo[] {
-  const map = new Map(todos.map(t => [t.id, t]))
-  const ordered = ids.filter(id => map.has(id)).map(id => map.get(id)!)
-  const unordered = todos.filter(t => !ids.includes(t.id))
-  return [...ordered, ...unordered]
+interface Props {
+  listId: string
+  title: string
+  todos: Todo[]
+  onAdd: (title: string) => Promise<void>
+  compact?: boolean
+  highlighted?: boolean
 }
 
-export function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [orderedIds, setOrderedIds] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
-
-  const sensors = useSensors(useSensor(PointerSensor))
-
-  useEffect(() => {
-    Promise.all([api.getTodos(), api.getOrder()])
-      .then(([fetchedTodos, { ids }]) => {
-        setOrderedIds(ids)
-        setTodos(applyOrder(fetchedTodos, ids))
-      })
-      .catch(() => setError('Failed to load todos.'))
-  }, [])
-
-  async function handleAdd(title: string) {
-    const todo = await api.createTodo(title)
-    const newIds = [...orderedIds, todo.id]
-    setTodos(prev => [...prev, todo])
-    setOrderedIds(newIds)
-    await api.updateOrder(newIds)
-  }
-
-  async function handleToggle(id: string, completed: boolean) {
-    const updated = await api.updateTodo(id, { completed })
-    setTodos(prev => prev.map(t => t.id === id ? updated : t))
-  }
-
-  async function handleRename(id: string, title: string) {
-    const updated = await api.updateTodo(id, { title })
-    setTodos(prev => prev.map(t => t.id === id ? updated : t))
-  }
-
-  async function handleSetDoDate(id: string, doDate: string | null) {
-    const updated = await api.updateTodo(id, { doDate })
-    setTodos(prev => prev.map(t => t.id === id ? updated : t))
-  }
-
-  async function handleDelete(id: string) {
-    await api.deleteTodo(id)
-    const newIds = orderedIds.filter(oid => oid !== id)
-    setTodos(prev => prev.filter(t => t.id !== id))
-    setOrderedIds(newIds)
-    await api.updateOrder(newIds)
-  }
-
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-
-    const oldIndex = todos.findIndex(t => t.id === active.id)
-    const newIndex = todos.findIndex(t => t.id === over.id)
-    const reordered = arrayMove(todos, oldIndex, newIndex)
-    const newIds = reordered.map(t => t.id)
-
-    setTodos(reordered)
-    setOrderedIds(newIds)
-    await api.updateOrder(newIds)
-  }
+export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: Props) {
+  const { handleToggle, handleRename, handleSetDoDate, handleDelete } = useTodos()
+  const { setNodeRef } = useDroppable({
+    id: containerDroppableId(listId),
+    data: { type: 'container', listId } satisfies ContainerDragData,
+  })
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-10 rounded-none border-none bg-transparent shadow-none">
-      <CardHeader>
-        <CardTitle className="text-neutral-100">My Todos</CardTitle>
+    <Card
+      className={cn(
+        'h-full rounded-none border-none bg-transparent shadow-none transition-colors',
+        compact ? 'gap-1 py-1' : 'gap-6 py-6',
+        highlighted && 'bg-slate-600',
+      )}
+    >
+      <CardHeader className={cn('shrink-0', compact ? 'px-1' : 'px-3')}>
+        <CardTitle className={cn('text-neutral-100', compact && 'text-xs font-medium')}>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <AddTodo onAdd={handleAdd} />
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {todos.length === 0 && !error && (
+      <CardContent
+        className={cn('flex min-h-0 flex-1 flex-col', compact ? 'space-y-1 px-1' : 'space-y-4 px-3')}
+      >
+        <AddTodo onAdd={onAdd} compact={compact} />
+        {todos.length === 0 && !compact && (
           <p className="text-sm text-neutral-400 text-center py-4">No todos yet. Add one above!</p>
         )}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={todos.map(t => t.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {todos.map(todo => (
-                <TodoItem
-                  key={todo.id}
-                  todo={todo}
-                  onToggle={handleToggle}
-                  onRename={handleRename}
-                  onSetDoDate={handleSetDoDate}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        <SortableContext items={todos.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <div
+            ref={setNodeRef}
+            className={cn('min-h-0 flex-1 overflow-y-auto', compact ? 'space-y-0.5' : 'space-y-2')}
+          >
+            {todos.map(todo => (
+              <TodoCard
+                key={todo.id}
+                todo={todo}
+                listId={listId}
+                compact={compact}
+                showDoDate={listId === 'all'}
+                onToggle={handleToggle}
+                onRename={handleRename}
+                onSetDoDate={handleSetDoDate}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </SortableContext>
       </CardContent>
     </Card>
   )

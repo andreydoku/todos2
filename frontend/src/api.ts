@@ -13,8 +13,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getTodos: () => request<Todo[]>('/todos'),
-  createTodo: (title: string) =>
-    request<Todo>('/todos', { method: 'POST', body: JSON.stringify({ title }) }),
+  createTodo: (title: string, doDate?: string | null) =>
+    request<Todo>('/todos', { method: 'POST', body: JSON.stringify({ title, doDate }) }),
   updateTodo: (id: string, updates: { title?: string; completed?: boolean; doDate?: string | null }) =>
     request<Todo>(`/todos/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
   deleteTodo: (id: string) =>

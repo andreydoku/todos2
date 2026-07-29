@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface Props {
   title: string
   completed: boolean
+  compact?: boolean
   onSave: (title: string) => Promise<void>
 }
 
-export function TodoTitle({ title, completed, onSave }: Props) {
+export function TodoTitle({ title, completed, compact, onSave }: Props) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,7 +46,10 @@ export function TodoTitle({ title, completed, onSave }: Props) {
         onFocus={e => e.target.select()}
         onBlur={save}
         onKeyDown={handleKeyDown}
-        className="flex-1 text-sm bg-transparent border-b border-primary outline-none py-0.5"
+        className={cn(
+          'flex-1 bg-transparent border-b border-primary outline-none py-0.5',
+          compact ? 'text-xs' : 'text-sm',
+        )}
       />
     )
   }
@@ -52,9 +57,11 @@ export function TodoTitle({ title, completed, onSave }: Props) {
   return (
     <span
       onClick={startEditing}
-      className={`flex flex-1 items-center text-sm cursor-pointer rounded-sm px-1 -mx-1 py-0.5 hover:bg-slate-200 transition-colors ${
-        completed ? 'line-through text-muted-foreground' : ''
-      }`}
+      className={cn(
+        'flex flex-1 items-center cursor-pointer rounded-sm px-1 -mx-1 py-0.5 hover:bg-slate-200 transition-colors',
+        compact ? 'text-xs' : 'text-sm',
+        completed && 'line-through text-muted-foreground',
+      )}
     >
       {title}
     </span>
