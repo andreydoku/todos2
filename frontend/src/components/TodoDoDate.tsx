@@ -9,7 +9,7 @@ interface Props {
   onSave: (doDate: string | null) => Promise<void>
 }
 
-function formatDoDate(doDate: string) {
+export function formatDoDate(doDate: string) {
   const [year, month, day] = doDate.split('-').map(Number)
   const date = new Date(Date.UTC(year, month - 1, day, 12))
   const monthDay = date.toLocaleDateString(undefined, {

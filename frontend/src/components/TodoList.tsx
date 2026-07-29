@@ -29,11 +29,6 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
   const itemsRef = useRef<HTMLDivElement | null>(null)
   const [justAddedId, setJustAddedId] = useState<string | null>(null)
 
-  function setItemsRef(node: HTMLDivElement | null) {
-    itemsRef.current = node
-    setNodeRef(node)
-  }
-
   async function handleAddClick() {
     let todo: Todo
     try {
@@ -50,9 +45,8 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
   return (
     <Card
       className={cn(
-        'h-full rounded-none border-none shadow-none transition-colors',
-        compact ? 'gap-1 py-1 bg-[#ffffff0d]' : 'gap-6 py-6 bg-transparent',
-        highlighted && 'bg-slate-600',
+        'h-full rounded-none border-none bg-transparent shadow-none',
+        compact ? 'gap-1 py-1' : 'gap-6 py-6',
       )}
     >
       <div className={cn('flex shrink-0 items-center justify-between', compact ? 'px-1' : 'px-3')}>
@@ -68,13 +62,18 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
         </Button>
       </div>
       <CardContent
-        className={cn('flex min-h-0 flex-1 flex-col', compact ? 'space-y-1 px-1' : 'space-y-4 px-3')}
+        ref={setNodeRef}
+        className={cn(
+          'flex min-h-0 flex-1 flex-col rounded-sm transition-colors',
+          compact ? 'space-y-1 px-1 bg-[#ffffff0d]' : 'space-y-4 p-3',
+          highlighted && 'bg-slate-600',
+        )}
       >
         {todos.length === 0 && !compact && (
           <p className="text-sm text-neutral-400 text-center py-4">No todos yet. Add one above!</p>
         )}
         <SortableContext items={todos.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          <div ref={setItemsRef} className={cn('min-h-0 flex-1 overflow-y-auto', compact ? 'space-y-0.5' : 'space-y-2')}>
+          <div ref={itemsRef} className={cn('min-h-0 flex-1 overflow-y-auto', compact ? 'space-y-0.5' : 'space-y-2')}>
             {todos.map(todo => (
               <TodoCard
                 key={todo.id}

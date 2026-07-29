@@ -3,12 +3,11 @@ import type { ReactNode } from 'react'
 import { DndContext, DragOverlay, MeasuringStrategy } from '@dnd-kit/core'
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { Card } from '@/components/ui/card'
+import { TodoCardPreview } from './TodoCardPreview'
 import { collisionDetection, useTodoDndSensors } from '@/lib/dnd'
 import type { ContainerDragData, TodoDragData } from '@/lib/dnd'
 import { moveBetweenLists, reorderSubset } from '@/lib/todos'
 import { useTodos } from '@/context/TodosContext'
-import { cn } from '@/lib/utils'
 import type { Todo } from '@/types'
 
 interface Props {
@@ -36,12 +35,12 @@ function resolveDrop(over: DragEndEvent['over']): DropTarget | null {
 export function MultiListDndProvider({ listsById, compact, children }: Props) {
   const { orderedIds, commitOrder, handleMoveTodo } = useTodos()
   const sensors = useTodoDndSensors()
-  const [activeTodo, setActiveTodo] = useState<Todo | null>(null)
+  const [activeDrag, setActiveDrag] = useState<{ todo: Todo; listId: string } | null>(null)
   const [overListId, setOverListId] = useState<string | null>(null)
 
   function handleDragStart(event: DragStartEvent) {
     const data = event.active.data.current as TodoDragData | undefined
-    setActiveTodo(data?.type === 'todo' ? data.todo : null)
+    setActiveDrag(data?.type === 'todo' ? { todo: data.todo, listId: data.listId } : null)
   }
 
   function handleDragOver(event: DragOverEvent) {
@@ -49,7 +48,7 @@ export function MultiListDndProvider({ listsById, compact, children }: Props) {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setActiveTodo(null)
+    setActiveDrag(null)
     setOverListId(null)
 
     const { active, over } = event
@@ -72,7 +71,9 @@ export function MultiListDndProvider({ listsById, compact, children }: Props) {
     } else {
       const overIndex = targetVisibleIds.indexOf(drop.todoId)
       const activeRect = active.rect.current.translated
-      const isBelowOverItem = !!activeRect && activeRect.top > over.rect.top + over.rect.height / 2
+      const activeCenterY = activeRect ? activeRect.top + activeRect.height / 2 : null
+      const overCenterY = over.rect.top + over.rect.height / 2
+      const isBelowOverItem = activeCenterY !== null && activeCenterY > overCenterY
       insertIndex = overIndex + (isBelowOverItem ? 1 : 0)
     }
 
@@ -102,17 +103,12 @@ export function MultiListDndProvider({ listsById, compact, children }: Props) {
     >
       {children(overListId)}
       <DragOverlay>
-        {activeTodo && (
-          <Card
-            className={cn(
-              'flex-row items-center rounded-sm shadow-lg',
-              compact ? 'gap-0.5 px-1 py-0.5 text-xs' : 'gap-1 px-2 py-2 text-sm',
-            )}
-          >
-            <span className={cn('truncate', activeTodo.completed && 'line-through text-muted-foreground')}>
-              {activeTodo.title}
-            </span>
-          </Card>
+        {activeDrag && (
+          <TodoCardPreview
+            todo={activeDrag.todo}
+            compact={compact}
+            showDoDate={activeDrag.listId === 'all'}
+          />
         )}
       </DragOverlay>
     </DndContext>
