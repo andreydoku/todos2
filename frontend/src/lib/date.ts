@@ -39,6 +39,17 @@ export function formatDayLabel(date: string): string {
   })
 }
 
+// Compact label for the month grid's cells: just the day number, except the
+// 1st of a month also carries the abbreviated month name (e.g. "Aug. 1") so
+// a month boundary within the grid is still legible at a glance.
+export function formatMonthCellLabel(date: string): string {
+  const parsed = parseISO(date)
+  const day = parsed.getUTCDate()
+  if (day !== 1) return String(day)
+  const month = parsed.toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' })
+  return `${month}. ${day}`
+}
+
 // Monday-aligned: getUTCDay() is 0=Sunday..6=Saturday, so Monday needs a 6-day
 // lookback instead of the usual 1-day one when today itself is Sunday.
 export function startOfWeek(date: string): string {

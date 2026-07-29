@@ -50,8 +50,8 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
   return (
     <Card
       className={cn(
-        'h-full rounded-none border-none bg-transparent shadow-none transition-colors',
-        compact ? 'gap-1 py-1' : 'gap-6 py-6',
+        'h-full rounded-none border-none shadow-none transition-colors',
+        compact ? 'gap-1 py-1 bg-[#ffffff0d]' : 'gap-6 py-6 bg-transparent',
         highlighted && 'bg-slate-600',
       )}
     >

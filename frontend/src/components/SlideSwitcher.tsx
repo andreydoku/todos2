@@ -1,80 +1,85 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 
 interface Props {
-  axis: 'x' | 'y'
   transitionKey: string
-  direction: 1 | -1
   children: ReactNode
 }
 
-const DURATION_MS = 250
+const DURATION_MS = 200
 
-// Animates between two renders of `children` whenever `transitionKey` changes,
-// sliding the previous content out while the new (live) content slides in.
-// `children` itself is always rendered live (never frozen), so data updates
-// that happen without a `transitionKey` change (e.g. a todo added mid-view)
-// show up immediately — only the outgoing snapshot is ever frozen.
-export function SlideSwitcher({ axis, transitionKey, direction, children }: Props) {
+// Cross-fades from the old content to the new one whenever `transitionKey`
+// changes. The "old" side is a plain `cloneNode(true)` DOM snapshot, not a
+// second React render of `children` — `children` contains live TodoList/
+// TodoCard instances wired into the page's shared DndContext, and mounting a
+// second copy of them would mean duplicate dnd-kit useDroppable/useSortable
+// registrations under the same ids. A raw DOM clone has no hooks, so there's
+// nothing to collide.
+//
+// A fade (not a slide) is deliberate: for a rolling window where most of the
+// content is shared between the old and new view (e.g. 2 of 3 visible weeks
+// unchanged after a 1-week step), a spatial slide shows that shared content
+// at two different positions simultaneously while the blocks pass each
+// other — inherent to the data overlap, not fixable by animating better. A
+// fade never moves content, so that effect can't happen.
+export function SlideSwitcher({ transitionKey, children }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const liveRef = useRef<HTMLDivElement>(null)
   const prevKeyRef = useRef(transitionKey)
-  const prevChildrenRef = useRef(children)
-  const [outgoing, setOutgoing] = useState<{ node: ReactNode; direction: 1 | -1 } | null>(null)
-  const [animate, setAnimate] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const snapshotRef = useRef<HTMLElement | null>(null)
 
-  if (transitionKey !== prevKeyRef.current && (!outgoing || outgoing.node !== prevChildrenRef.current)) {
-    setOutgoing({ node: prevChildrenRef.current, direction })
-    setAnimate(false)
-  }
-
+  // Runs first each commit: if the key just changed, fade using whatever was
+  // captured (below) at the end of the *previous* commit — i.e. the content
+  // as it looked right before `children` updated to the new value.
   useLayoutEffect(() => {
+    if (transitionKey === prevKeyRef.current) return
     prevKeyRef.current = transitionKey
-    prevChildrenRef.current = children
+
+    const container = containerRef.current
+    const live = liveRef.current
+    const clone = snapshotRef.current
+    snapshotRef.current = null
+    if (!container || !live || !clone) return
+
+    clone.style.position = 'absolute'
+    clone.style.inset = '0'
+    clone.style.margin = '0'
+    clone.style.transition = 'none'
+    clone.style.opacity = '1'
+    clone.style.pointerEvents = 'none'
+    container.appendChild(clone)
+
+    live.style.transition = 'none'
+    live.style.opacity = '0'
+    void live.offsetHeight // force a reflow so the starting opacity paints before animating
+
+    const frame = requestAnimationFrame(() => {
+      live.style.transition = `opacity ${DURATION_MS}ms ease-out`
+      live.style.opacity = '1'
+      clone.style.transition = `opacity ${DURATION_MS}ms ease-out`
+      clone.style.opacity = '0'
+    })
+
+    const timeout = setTimeout(() => clone.remove(), DURATION_MS + 50)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(timeout)
+      clone.remove()
+    }
   })
 
+  // Runs second each commit: always re-snapshot the now-current content, so
+  // whenever the key next changes there's something correct to freeze.
   useLayoutEffect(() => {
-    if (!outgoing || animate) return
-    const frame = requestAnimationFrame(() => setAnimate(true))
-    return () => cancelAnimationFrame(frame)
-  }, [outgoing, animate])
-
-  useLayoutEffect(() => {
-    if (!outgoing || !animate) return
-    timeoutRef.current = setTimeout(() => {
-      setOutgoing(null)
-      setAnimate(false)
-    }, DURATION_MS)
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [outgoing, animate])
-
-  function translate(percent: number) {
-    return axis === 'x' ? `translateX(${percent}%)` : `translateY(${percent}%)`
-  }
+    snapshotRef.current = liveRef.current ? (liveRef.current.cloneNode(true) as HTMLElement) : null
+  })
 
   return (
-    <div className="relative h-full overflow-hidden">
-      <div
-        className="h-full"
-        style={{
-          transform: translate(!outgoing ? 0 : animate ? 0 : outgoing.direction * 100),
-          transition: outgoing && animate ? `transform ${DURATION_MS}ms ease-out` : 'none',
-        }}
-      >
+    <div ref={containerRef} className="relative h-full overflow-hidden">
+      <div ref={liveRef} className="h-full">
         {children}
       </div>
-      {outgoing && (
-        <div
-          className="absolute inset-0"
-          style={{
-            transform: translate(animate ? -outgoing.direction * 100 : 0),
-            transition: animate ? `transform ${DURATION_MS}ms ease-out` : 'none',
-          }}
-        >
-          {outgoing.node}
-        </div>
-      )}
     </div>
   )
 }

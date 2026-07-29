@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,7 +8,7 @@ import { SlideSwitcher } from '@/components/SlideSwitcher'
 import { todosForDate } from '@/lib/todos'
 import {
   addDays,
-  formatDayLabel,
+  formatMonthCellLabel,
   isValidDateParam,
   startOfWeek,
   threeWeekWindow,
@@ -23,7 +22,6 @@ export function MonthView() {
   const { date } = useParams<{ date: string }>()
   const { todos, orderedIds, handleAdd } = useTodos()
   const navigate = useNavigate()
-  const [direction, setDirection] = useState<1 | -1>(1)
 
   if (!isValidDateParam(date)) {
     return <Navigate to={`/month/${todayISO()}`} replace />
@@ -34,7 +32,6 @@ export function MonthView() {
   const anchor = startOfWeek(date)
 
   function go(delta: 1 | -1) {
-    setDirection(delta)
     navigate(`/month/${addDays(anchor, delta * 7)}`)
   }
 
@@ -47,73 +44,77 @@ export function MonthView() {
   }
 
   return (
-    <div className="flex h-full w-full gap-2">
-      <div className="flex h-full min-w-0 flex-1 flex-col">
-        <div className="mb-1 grid shrink-0 grid-cols-7 gap-1">
-          {WEEKDAY_LABELS.map(label => (
-            <div key={label} className="text-center text-xs font-medium text-neutral-400">
-              {label}
+    <MultiListDndProvider listsById={listsById} compact>
+      {overListId => (
+        <div className="flex h-full w-full items-stretch gap-4">
+          <div className="flex h-full w-40 shrink-0 flex-col">
+            <div className="mb-1 shrink-0 text-center text-xs font-medium text-neutral-400">{' '}</div>
+            <div className="min-h-0 flex-1 overflow-hidden rounded-sm shadow-md">
+              <TodoList
+                listId="unscheduled"
+                title="Unscheduled"
+                todos={unscheduledTodos}
+                onAdd={title => handleAdd(title)}
+                compact
+                highlighted={overListId === 'unscheduled'}
+              />
             </div>
-          ))}
-        </div>
-        <div className="min-h-0 flex-1">
-          <SlideSwitcher axis="y" transitionKey={anchor} direction={direction}>
-            <MultiListDndProvider listsById={listsById} compact>
-              {overListId => (
-                <div className="flex h-full gap-4">
-                  <div className="grid flex-1 grid-cols-7 gap-1">
-                    {dates.map(d => (
-                      <div
-                        key={d}
-                        className={cn('h-full rounded-sm', d === today && 'border-2 border-slate-500')}
-                      >
-                        <TodoList
-                          listId={d}
-                          title={formatDayLabel(d)}
-                          todos={listsById[d]}
-                          onAdd={title => handleAdd(title, d)}
-                          compact
-                          highlighted={overListId === d}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="h-full w-40 shrink-0">
-                    <TodoList
-                      listId="unscheduled"
-                      title="Unscheduled"
-                      todos={unscheduledTodos}
-                      onAdd={title => handleAdd(title)}
-                      compact
-                      highlighted={overListId === 'unscheduled'}
-                    />
-                  </div>
+          </div>
+          <div className="flex h-full min-w-0 flex-1 flex-col">
+            <div className="mb-1 grid shrink-0 grid-cols-7 gap-1">
+              {WEEKDAY_LABELS.map(label => (
+                <div key={label} className="text-center text-xs font-medium text-neutral-400">
+                  {label}
                 </div>
-              )}
-            </MultiListDndProvider>
-          </SlideSwitcher>
+              ))}
+            </div>
+            <div className="min-h-0 flex-1">
+              <SlideSwitcher transitionKey={anchor}>
+                <div className="grid h-full grid-cols-7 grid-rows-3 gap-1">
+                  {dates.map(d => (
+                    <div
+                      key={d}
+                      className={cn(
+                        'h-full overflow-hidden rounded-sm border-2 shadow-md',
+                        d === today ? 'border-slate-500' : 'border-transparent',
+                      )}
+                    >
+                      <TodoList
+                        listId={d}
+                        title={formatMonthCellLabel(d)}
+                        todos={listsById[d]}
+                        onAdd={title => handleAdd(title, d)}
+                        compact
+                        highlighted={overListId === d}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </SlideSwitcher>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col gap-1 pt-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => go(-1)}
+              aria-label="Previous week"
+              className="cursor-pointer text-neutral-300 hover:bg-slate-200 hover:text-black"
+            >
+              <ChevronUp />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => go(1)}
+              aria-label="Next week"
+              className="cursor-pointer text-neutral-300 hover:bg-slate-200 hover:text-black"
+            >
+              <ChevronDown />
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="flex shrink-0 flex-col gap-1 pt-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => go(-1)}
-          aria-label="Previous week"
-          className="cursor-pointer text-neutral-300 hover:bg-slate-200 hover:text-black"
-        >
-          <ChevronUp />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => go(1)}
-          aria-label="Next week"
-          className="cursor-pointer text-neutral-300 hover:bg-slate-200 hover:text-black"
-        >
-          <ChevronDown />
-        </Button>
-      </div>
-    </div>
+      )}
+    </MultiListDndProvider>
   )
 }

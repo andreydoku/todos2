@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,14 +13,12 @@ export function ThreeDayView() {
   const { date } = useParams<{ date: string }>()
   const { todos, orderedIds, handleAdd } = useTodos()
   const navigate = useNavigate()
-  const [direction, setDirection] = useState<1 | -1>(1)
 
   if (!isValidDateParam(date)) {
     return <Navigate to={`/3-day/${todayISO()}`} replace />
   }
 
   function go(delta: 1 | -1) {
-    setDirection(delta)
     navigate(`/3-day/${addDays(date!, delta)}`)
   }
 
@@ -46,7 +43,7 @@ export function ThreeDayView() {
             <ChevronLeft />
           </Button>
           <div className="h-full min-w-0 flex-1">
-            <SlideSwitcher axis="x" transitionKey={date} direction={direction}>
+            <SlideSwitcher transitionKey={date}>
               <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-3">
                 {dates.map(d => (
                   <TodoList
