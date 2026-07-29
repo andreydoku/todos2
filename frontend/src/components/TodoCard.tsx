@@ -15,13 +15,26 @@ interface Props {
   listId: string
   compact?: boolean
   showDoDate?: boolean
+  autoFocus?: boolean
+  onAutoFocused?: () => void
   onToggle: (id: string, completed: boolean) => Promise<void>
   onRename: (id: string, title: string) => Promise<void>
   onSetDoDate: (id: string, doDate: string | null) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }
 
-export function TodoCard({ todo, listId, compact, showDoDate, onToggle, onRename, onSetDoDate, onDelete }: Props) {
+export function TodoCard({
+  todo,
+  listId,
+  compact,
+  showDoDate,
+  autoFocus,
+  onAutoFocused,
+  onToggle,
+  onRename,
+  onSetDoDate,
+  onDelete,
+}: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
     data: { type: 'todo', listId, todo } satisfies TodoDragData,
@@ -37,6 +50,7 @@ export function TodoCard({ todo, listId, compact, showDoDate, onToggle, onRename
     <Card
       ref={setNodeRef}
       style={style}
+      data-todo-id={todo.id}
       className={cn('flex-row items-stretch rounded-sm shadow-md', compact ? 'gap-0.5 px-1 py-0.5' : 'gap-1 px-2 py-2')}
     >
       <button
@@ -63,6 +77,8 @@ export function TodoCard({ todo, listId, compact, showDoDate, onToggle, onRename
         title={todo.title}
         completed={todo.completed}
         compact={compact}
+        autoFocus={autoFocus}
+        onAutoFocused={onAutoFocused}
         onSave={title => onRename(todo.id, title)}
       />
       {showDoDate && (

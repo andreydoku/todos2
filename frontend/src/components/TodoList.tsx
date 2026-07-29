@@ -1,7 +1,9 @@
+import { useRef, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AddTodo } from './AddTodo'
+import { Plus } from 'lucide-react'
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { TodoCard } from './TodoCard'
 import { useTodos } from '@/context/TodosContext'
 import { containerDroppableId } from '@/lib/dnd'
@@ -13,7 +15,7 @@ interface Props {
   listId: string
   title: string
   todos: Todo[]
-  onAdd: (title: string) => Promise<void>
+  onAdd: (title: string) => Promise<Todo>
   compact?: boolean
   highlighted?: boolean
 }
@@ -24,6 +26,26 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
     id: containerDroppableId(listId),
     data: { type: 'container', listId } satisfies ContainerDragData,
   })
+  const itemsRef = useRef<HTMLDivElement | null>(null)
+  const [justAddedId, setJustAddedId] = useState<string | null>(null)
+
+  function setItemsRef(node: HTMLDivElement | null) {
+    itemsRef.current = node
+    setNodeRef(node)
+  }
+
+  async function handleAddClick() {
+    let todo: Todo
+    try {
+      todo = await onAdd('new task')
+    } catch {
+      return
+    }
+    setJustAddedId(todo.id)
+    requestAnimationFrame(() => {
+      itemsRef.current?.querySelector(`[data-todo-id="${todo.id}"]`)?.scrollIntoView({ block: 'nearest' })
+    })
+  }
 
   return (
     <Card
@@ -33,21 +55,26 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
         highlighted && 'bg-slate-600',
       )}
     >
-      <CardHeader className={cn('shrink-0', compact ? 'px-1' : 'px-3')}>
+      <div className={cn('flex shrink-0 items-center justify-between', compact ? 'px-1' : 'px-3')}>
         <CardTitle className={cn('text-neutral-100', compact && 'text-xs font-medium')}>{title}</CardTitle>
-      </CardHeader>
+        <Button
+          variant="ghost"
+          size={compact ? 'icon-xs' : 'icon-sm'}
+          onClick={handleAddClick}
+          aria-label="Add todo"
+          className="cursor-pointer rounded-sm text-muted-foreground hover:bg-slate-200 hover:text-foreground"
+        >
+          <Plus />
+        </Button>
+      </div>
       <CardContent
         className={cn('flex min-h-0 flex-1 flex-col', compact ? 'space-y-1 px-1' : 'space-y-4 px-3')}
       >
-        <AddTodo onAdd={onAdd} compact={compact} />
         {todos.length === 0 && !compact && (
           <p className="text-sm text-neutral-400 text-center py-4">No todos yet. Add one above!</p>
         )}
         <SortableContext items={todos.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          <div
-            ref={setNodeRef}
-            className={cn('min-h-0 flex-1 overflow-y-auto', compact ? 'space-y-0.5' : 'space-y-2')}
-          >
+          <div ref={setItemsRef} className={cn('min-h-0 flex-1 overflow-y-auto', compact ? 'space-y-0.5' : 'space-y-2')}>
             {todos.map(todo => (
               <TodoCard
                 key={todo.id}
@@ -55,6 +82,8 @@ export function TodoList({ listId, title, todos, onAdd, compact, highlighted }: 
                 listId={listId}
                 compact={compact}
                 showDoDate={listId === 'all'}
+                autoFocus={todo.id === justAddedId}
+                onAutoFocused={() => setJustAddedId(null)}
                 onToggle={handleToggle}
                 onRename={handleRename}
                 onSetDoDate={handleSetDoDate}

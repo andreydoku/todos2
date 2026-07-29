@@ -1,14 +1,16 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface Props {
   title: string
   completed: boolean
   compact?: boolean
+  autoFocus?: boolean
+  onAutoFocused?: () => void
   onSave: (title: string) => Promise<void>
 }
 
-export function TodoTitle({ title, completed, compact, onSave }: Props) {
+export function TodoTitle({ title, completed, compact, autoFocus, onAutoFocused, onSave }: Props) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -17,6 +19,22 @@ export function TodoTitle({ title, completed, compact, onSave }: Props) {
     setValue(title)
     setEditing(true)
   }
+
+  const onAutoFocusedRef = useRef(onAutoFocused)
+  useEffect(() => {
+    onAutoFocusedRef.current = onAutoFocused
+  })
+
+  // Newly-created todos start in edit mode so the placeholder title can be
+  // typed over immediately; the input's own autoFocus + onFocus select() take
+  // care of focusing and selecting once it mounts.
+  useEffect(() => {
+    if (autoFocus) {
+      setValue(title)
+      setEditing(true)
+      onAutoFocusedRef.current?.()
+    }
+  }, [autoFocus, title])
 
   async function save() {
     const trimmed = value.trim()
